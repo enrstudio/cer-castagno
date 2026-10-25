@@ -16,7 +16,7 @@
 # Le voci "da_verificare" vengono da una prima stesura e vanno controllate
 # sulle fonti ufficiali prima di usarle per decidere.
 
-versione: 0.1.0
+versione: 0.2.0
 aggiornato: 2026-10-25
 
 ipotesi:
@@ -84,9 +84,202 @@ ipotesi:
     min: 2.5
     max: 3.5
     unita: adimensionale
-    descrizione: kWh di calore prodotti in media da una pompa di calore per ogni kWh elettrico.
-    fonte: Scheda tecnica e clima locale; il motore userà un COP orario funzione della temperatura
+    descrizione: kWh di calore prodotti in media in un anno da una pompa di calore per ogni kWh elettrico. Solo per controllo; il motore calcola il COP ora per ora.
+    fonte: Scheda tecnica e clima locale; motore/calore.py
+    stato: da_calcolare
+
+  acs_kwh_persona_giorno:
+    valore: 1.6
+    min: 1.0
+    max: 2.4
+    unita: kWh/persona/giorno
+    descrizione: Calore per l'acqua calda di una persona in un giorno (circa 40 litri scaldati da 10 a 40 °C, più le perdite).
+    fonte: Ordine di grandezza da UNI/TS 11300-2; da confrontare con le bollette estive
     stato: da_verificare
+
+  gpl_cucina_m3_giorno:
+    valore: 0.06
+    min: 0.03
+    max: 0.10
+    unita: m3/giorno per casa
+    descrizione: GPL usato per cucinare (circa 22 m³ all'anno).
+    fonte: Ordine di grandezza per una famiglia; dal questionario e dalle bollette estive
+    stato: da_verificare
+
+  temperatura_base_riscaldamento:
+    valore: 16
+    min: 12
+    max: 20
+    unita: °C
+    descrizione: Temperatura media esterna del giorno sopra la quale il riscaldamento resta spento. Il motore cerca il valore che spiega meglio le letture, dentro la forchetta.
+    fonte: Calibrazione sulle letture effettive del contatore GPL
+    stato: da_calcolare
+
+  temperatura_interna:
+    valore: 20
+    min: 18
+    max: 21
+    unita: °C
+    descrizione: Temperatura della casa riscaldata. Serve solo a distribuire il calore del giorno fra le ore.
+    fonte: Valore di legge per le abitazioni (DPR 74/2013)
+    stato: verificato
+
+  mandata_a_zero_gradi:
+    valore: 40
+    min: 35
+    max: 50
+    unita: °C
+    descrizione: Temperatura dell'acqua mandata ai termosifoni quando fuori ci sono 0 °C. Termosifoni piccoli o in una casa poco isolata chiedono acqua più calda; il pavimento radiante circa 30 °C.
+    fonte: Curva climatica tipica per termosifoni (Ruhnau e altri 2019, When2Heat); da controllare col termotecnico
+    stato: da_verificare
+
+  pendenza_curva_climatica:
+    valore: 1.0
+    min: 0.5
+    max: 1.5
+    unita: °C/°C
+    descrizione: Di quanti gradi sale l'acqua dei termosifoni per ogni grado in meno fuori (pavimento radiante circa 0,5).
+    fonte: Ruhnau e altri 2019, When2Heat
+    stato: da_verificare
+
+  temperatura_acqua_calda:
+    valore: 50
+    min: 45
+    max: 55
+    unita: °C
+    descrizione: Temperatura a cui la pompa di calore scalda l'acqua per bagno e cucina.
+    fonte: Ruhnau e altri 2019, When2Heat
+    stato: da_verificare
+
+  correzione_cop:
+    valore: 0.85
+    min: 0.75
+    max: 0.95
+    unita: adimensionale
+    descrizione: Quanto rende una pompa di calore installata rispetto alle schede tecniche (sbrinamenti, accensioni e spegnimenti).
+    fonte: Ruhnau e altri 2019, When2Heat
+    stato: da_verificare
+
+  rendimento_fornelli_gas:
+    valore: 0.40
+    min: 0.30
+    max: 0.55
+    unita: adimensionale
+    descrizione: Quota del calore della fiamma che arriva nella pentola.
+    fonte: Letteratura tecnica sui piani cottura
+    stato: da_verificare
+
+  rendimento_induzione:
+    valore: 0.85
+    min: 0.80
+    max: 0.90
+    unita: adimensionale
+    descrizione: Quota dell'elettricità di un piano a induzione che arriva nella pentola.
+    fonte: Letteratura tecnica sui piani cottura
+    stato: da_verificare
+
+  # --- Stufe a pellet e a legna ------------------------------------------------
+
+  quota_stufa:
+    valore: 0.5
+    min: 0.0
+    max: 0.9
+    unita: frazione
+    descrizione: Quota del riscaldamento degli ambienti coperta dalla stufa negli scenari ibridi. Il resto e l'acqua calda li fa la pompa di calore.
+    fonte: Scelta di ogni famiglia
+    stato: decide_il_gruppo
+
+  pci_pellet:
+    valore: 4.8
+    min: 4.6
+    max: 5.0
+    unita: kWh/kg
+    descrizione: Energia contenuta in un kg di pellet certificato.
+    fonte: Norma ISO 17225-2, classe A1 (almeno 4,6 kWh/kg)
+    stato: da_verificare
+
+  rendimento_stufa_pellet:
+    valore: 0.88
+    min: 0.85
+    max: 0.92
+    unita: adimensionale
+    descrizione: Quota dell'energia del pellet che diventa calore in casa.
+    fonte: Schede tecniche delle stufe in commercio
+    stato: da_verificare
+
+  prezzo_pellet:
+    valore: 0.42
+    min: 0.33
+    max: 0.50
+    unita: EUR/kg
+    descrizione: Prezzo del pellet in sacchi da 15 kg (circa 6,30 € al sacco).
+    fonte: Prezzi al dettaglio in Toscana; da aggiornare con i rivenditori locali
+    stato: da_verificare
+
+  pci_legna:
+    valore: 4.0
+    min: 3.5
+    max: 4.3
+    unita: kWh/kg
+    descrizione: Energia contenuta in un kg di legna ben stagionata (umidità intorno al 20%).
+    fonte: Letteratura tecnica (AIEL)
+    stato: da_verificare
+
+  rendimento_stufa_legna:
+    valore: 0.75
+    min: 0.60
+    max: 0.85
+    unita: adimensionale
+    descrizione: Quota dell'energia della legna che diventa calore in casa. Un camino aperto rende molto meno (20-30%).
+    fonte: Schede tecniche delle stufe in commercio
+    stato: da_verificare
+
+  prezzo_legna:
+    valore: 0.18
+    min: 0.10
+    max: 0.25
+    unita: EUR/kg
+    descrizione: Prezzo della legna stagionata consegnata (18 € al quintale). Zero se è legna propria, ma il lavoro ha un costo.
+    fonte: Prezzi locali da verificare
+    stato: da_verificare
+
+  costo_stufa_pellet:
+    valore: 3000
+    min: 2000
+    max: 4500
+    unita: EUR
+    descrizione: Stufa a pellet installata, con canna fumaria.
+    fonte: Preventivi
+    stato: da_verificare
+
+  costo_stufa_legna:
+    valore: 2500
+    min: 1500
+    max: 4000
+    unita: EUR
+    descrizione: Stufa a legna installata, con canna fumaria.
+    fonte: Preventivi
+    stato: da_verificare
+
+  # --- Contatore elettrico -----------------------------------------------------
+
+  potenza_dopo_elettrificazione:
+    valore: 6.0
+    min: 4.5
+    max: 6.0
+    unita: kW
+    descrizione: Potenza del contatore dopo aver tolto il gas, con pompa di calore e piano a induzione.
+    fonte: Da decidere col termotecnico, guardando il picco calcolato dal motore
+    stato: decide_il_gruppo
+
+  iva_luce:
+    valore: 0.10
+    min: null
+    max: null
+    unita: frazione
+    descrizione: Aliquota IVA sulle bollette elettriche delle abitazioni.
+    fonte: DPR 633/1972, tabella A, parte III
+    stato: verificato
 
   # --- Fotovoltaico e accumulo -------------------------------------------------
 

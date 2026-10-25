@@ -25,9 +25,12 @@ motore/          il motore di calcolo in Python
   ipotesi.py     lettura e controllo del registro
   finanza.py     flussi di cassa, VAN, TIR, tempo di ritorno
   produzione.py  produzione fotovoltaica con PVGIS, con cache
+  meteo.py       temperature orarie misurate (Open-Meteo), con cache
+  calore.py      calore dalle bollette GPL, pompa di calore, stufe a pellet e legna
 strumenti/       script di servizio
   estrai_bollette.py    dati dalle bollette PDF a tabelle CSV
   analisi_superfici.py  falde dal DSM LiDAR: azimut, orizzonte, resa con PVGIS
+  scenari_calore.py     scenari di riscaldamento senza gas per una casa
   controllo_privacy.py  blocca i commit con dati personali
 qgis/            schema dei layer e stili per QGIS
 sito/            il sito statico (in arrivo)

@@ -73,12 +73,64 @@ I kWh mensili per fascia F1, F2 e F3 letti in bolletta si distribuiscono
 sulle ore della fascia con un profilo domestico tipo, scalato in modo che
 ogni mese e ogni fascia tornino esattamente con la bolletta.
 
-## 5. Riscaldamento (`motore/calore.py`) — da scrivere
+## 5. Riscaldamento (`motore/calore.py`, `motore/meteo.py`) — scritto e testato
 
-Calore utile = m³ di GPL × PCI × rendimento caldaia, tolta la quota per
-acqua calda e cucina. Si distribuisce sulle ore con i gradi-ora ricavati
-dalla temperatura oraria dell'anno tipo. Con la pompa di calore, il consumo
-elettrico è il calore diviso il COP dell'ora, che scende col freddo.
+**Temperature.** Temperature orarie a 2 m dall'archivio Open-Meteo (rianalisi
+ERA5, griglia di circa 25 km, corretta per la quota della casa), in UTC.
+Il clima "tipo" non è un anno solo ma i dieci anni 2016–2025: ogni risultato
+si dà come media, con l'anno più mite e quello più freddo.
+
+**Taratura sulle letture.** Si usano solo le letture *effettive* del
+contatore GPL. Per ogni intervallo *i* fra due letture, di *n_i* giorni:
+
+```text
+m³_i = b × n_i + k × GG_i(T_b),     GG_i = Σ_giorni max(0, T_b − T_media,giorno)
+```
+
+- *b*, la quota fissa (acqua calda e cucina), **non si stima** dalle
+  letture: con poche letture tutte a cavallo di un inverno si confonde col
+  riscaldamento. Si fissa così:
+  `b = persone × ACS_persona / (PCI × η_caldaia) + GPL_cucina`.
+- *k* (m³ per grado giorno) si trova con i minimi quadrati per l'origine:
+  `k = Σ GG_i × (m³_i − b n_i) / Σ GG_i²`.
+- *T_b* (temperatura base) si cerca a passi di 0,5 °C dentro la forchetta
+  del registro, tenendo quella con lo scarto minore. Se finisce al bordo
+  della forchetta lo script lo segnala: il modello forse non descrive bene
+  la casa (una stufa che aiuta, una quota fissa sbagliata).
+
+**Calore ora per ora.** Il calore utile del giorno è `k × GG_giorno × PCI ×
+η_caldaia` e si divide fra le ore in proporzione a `max(0, T_interna −
+T_ora)`. L'acqua calda è `persone × ACS_persona`, uguale in ogni ora.
+
+**Pompa di calore aria-acqua.** COP orario dalla regressione di Ruhnau e
+altri (2019, banca dati When2Heat), con ΔT = T_mandata − T_esterna limitato
+fra 15 e 80 °C:
+
+```text
+COP = (6,08 − 0,09 ΔT + 0,0005 ΔT²) × correzione,     COP ≥ 1
+T_mandata = mandata_a_0°C − pendenza × T_esterna        (termosifoni)
+T_mandata = temperatura_acqua_calda                     (acqua calda)
+```
+
+Elettricità dell'ora = calore / COP. SCOP = calore annuo fornito dalla
+pompa / elettricità annua.
+
+**Stufa (scenari ibridi).** Copre la quota `quota_stufa` del riscaldamento
+in ogni ora; combustibile = calore della stufa / (PCI × rendimento).
+
+**Cucina.** Piano a induzione: `GPL_cucina × 365 × PCI × η_fornelli /
+η_induzione` kWh all'anno.
+
+**Spesa annua di energia.** (kWh pompa di calore + kWh induzione) × prezzo
+marginale della luce + kg di combustibile × prezzo + quota fissa per i kW
+di contatore in più. Il riferimento GPL è il consumo previsto dal modello,
+con lo stesso clima, per il prezzo medio delle fatture. Investimenti e
+manutenzione entrano nei conti di `finanza.py`.
+
+**Limiti noti.** Riscaldamento continuo, senza orari di accensione; acqua
+calda uguale in ogni ora; stufa a quota costante; nessuna resistenza
+integrativa (il picco elettrico è quindi una stima per difetto nei giorni
+più freddi).
 
 ## 6. Bilancio della casa (`motore/bilancio.py`) — da scrivere
 

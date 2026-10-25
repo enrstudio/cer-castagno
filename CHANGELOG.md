@@ -16,4 +16,8 @@ cita la versione del motore che lo ha prodotto.
 - `motore/produzione.py`: produzione fotovoltaica con l'API PVGIS, con cache su disco.
 - `strumenti/analisi_superfici.py`: azimut delle falde dal disegno, orizzonte dal DSM LiDAR e dal DTM, resa con PVGIS.
 - Nel registro: cabina primaria di Seccheto e nuovo stato `verificato`.
+- `motore/meteo.py`: temperature orarie dall'archivio Open-Meteo, con cache.
+- `motore/calore.py`: taratura dei consumi di GPL sui gradi giorno, calore ora per ora, COP orario della pompa di calore, stufe a pellet e legna, piano a induzione.
+- `strumenti/scenari_calore.py`: confronto della spesa annua fra GPL, pompa di calore e ibridi, con il clima 2016–2025.
+- Registro 0.2.0: parametri di acqua calda, cucina, curva climatica, COP, stufe e contatore.
 - Nel registro: costi di uscita dal gas (dismissione del bombolone, messa in sicurezza, smaltimento caldaia, aumento di potenza, piano a induzione) e costo dello scenario di confronto "GPL nuovo".
