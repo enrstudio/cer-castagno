@@ -1,0 +1,4 @@
+#!/bin/sh
+# Prima di ogni commit: niente dati personali nei file.
+# Si attiva una volta sola con:  git config core.hooksPath .githooks
+exec python3 strumenti/controllo_privacy.py

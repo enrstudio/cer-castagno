@@ -1,0 +1,19 @@
+# Dati personali delle famiglie: non devono MAI finire nel repository.
+dati/
+*.gpkg
+*.gpkg-shm
+*.gpkg-wal
+*.pdf
+
+# Risultati rigenerabili dal motore (risposte PVGIS, serie orarie).
+cache/
+
+# Python
+__pycache__/
+*.egg-info/
+.venv/
+.pytest_cache/
+
+# QGIS
+*.qgs~
+*.qgz~

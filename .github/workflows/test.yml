@@ -1,0 +1,22 @@
+# Ad ogni push e pull request: controllo privacy su tutto il repository
+# e test del motore. Un commit che rompe i test non deve entrare in main.
+name: test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Controllo dati personali
+        run: python strumenti/controllo_privacy.py --tutti
+      - name: Installazione
+        run: pip install -e ".[dev]"
+      - name: Test
+        run: pytest -v

@@ -1,0 +1,313 @@
+# Registro delle ipotesi del progetto CER Castagno.
+#
+# È l'UNICA fonte dei parametri usati dal motore di calcolo: nessun numero
+# va scritto direttamente nel codice. Ogni voce dichiara da dove viene e
+# quanto ci si può fidare, così in assemblea si discute di questa tabella
+# e non dei risultati.
+#
+# Campi di ogni voce:
+#   valore       il valore usato nello scenario di base (null = ancora ignoto)
+#   min, max     la forchetta plausibile, usata per le analisi di sensibilità
+#   unita        unità di misura (EUR = euro; IVA inclusa se non detto altrimenti)
+#   descrizione  cosa rappresenta, in parole semplici
+#   fonte        da dove viene il valore
+#   stato        dalle_bollette | da_verificare | decide_il_gruppo | da_calcolare
+#
+# Le voci "da_verificare" vengono da una prima stesura e vanno controllate
+# sulle fonti ufficiali prima di usarle per decidere.
+
+versione: 0.1.0
+aggiornato: 2026-10-25
+
+ipotesi:
+
+  # --- Prezzi dell'energia ---------------------------------------------------
+
+  prezzo_luce_marginale:
+    valore: 0.335
+    min: 0.28
+    max: 0.38
+    unita: EUR/kWh
+    descrizione: Costo di un kWh in più prelevato dalla rete, con oneri, accise e IVA.
+    fonte: "Bollette Enel 2025-26 di Seccheto: quota consumi 0,282 + accisa 0,0227, IVA 10%"
+    stato: dalle_bollette
+
+  quota_potenza:
+    valore: 1.91
+    min: null
+    max: null
+    unita: EUR/kW/mese
+    descrizione: Costo fisso per ogni kW di potenza impegnata del contatore, IVA esclusa.
+    fonte: Bolletta Enel di agosto 2026
+    stato: dalle_bollette
+
+  prezzo_gpl:
+    valore: 6.40
+    min: 6.33
+    max: 6.46
+    unita: EUR/m3
+    descrizione: Costo medio di un metro cubo di GPL al contatore, tutto compreso.
+    fonte: Fatture Beyfin 2023-2025, media delle tre annate
+    stato: dalle_bollette
+
+  prezzo_ritiro_dedicato:
+    valore: 0.09
+    min: 0.06
+    max: 0.12
+    unita: EUR/kWh
+    descrizione: Prezzo a cui il GSE compra l'energia immessa in rete.
+    fonte: Prezzi zonali GSE, zona Centro-Nord
+    stato: da_verificare
+
+  # --- Calore ----------------------------------------------------------------
+
+  pci_gpl:
+    valore: 24.0
+    min: 23.0
+    max: 25.5
+    unita: kWh/m3
+    descrizione: Energia contenuta in un metro cubo di GPL gassoso (potere calorifico inferiore).
+    fonte: Letteratura tecnica; chiedere il valore a Beyfin
+    stato: da_verificare
+
+  rendimento_caldaia_gpl:
+    valore: 0.90
+    min: 0.85
+    max: 0.95
+    unita: adimensionale
+    descrizione: Quota dell'energia del GPL che diventa calore utile in casa.
+    fonte: Targa della caldaia
+    stato: da_verificare
+
+  scop_pdc:
+    valore: 3.0
+    min: 2.5
+    max: 3.5
+    unita: adimensionale
+    descrizione: kWh di calore prodotti in media da una pompa di calore per ogni kWh elettrico.
+    fonte: Scheda tecnica e clima locale; il motore userà un COP orario funzione della temperatura
+    stato: da_verificare
+
+  # --- Fotovoltaico e accumulo -------------------------------------------------
+
+  resa_fv:
+    valore: 1150
+    min: 1000
+    max: 1250
+    unita: kWh/kWp/anno
+    descrizione: Energia prodotta in un anno da 1 kWp. Valore di riferimento; per ogni superficie si calcola con PVGIS.
+    fonte: PVGIS con orizzonte dal DSM LiDAR
+    stato: da_calcolare
+
+  perdite_sistema_fv:
+    valore: 0.14
+    min: 0.10
+    max: 0.16
+    unita: frazione
+    descrizione: Perdite di cavi, inverter, sporco e temperatura.
+    fonte: Valore predefinito di PVGIS
+    stato: da_verificare
+
+  degrado_fv:
+    valore: 0.005
+    min: 0.003
+    max: 0.008
+    unita: frazione/anno
+    descrizione: Calo di produzione dei pannelli ogni anno.
+    fonte: Garanzie dei produttori
+    stato: da_verificare
+
+  costo_fv:
+    valore: 1600
+    min: 1300
+    max: 2000
+    unita: EUR/kWp
+    descrizione: Prezzo chiavi in mano di un impianto domestico, pratiche comprese.
+    fonte: Da sostituire con almeno 2 preventivi locali
+    stato: da_verificare
+
+  costo_inverter:
+    valore: 1200
+    min: 800
+    max: 1800
+    unita: EUR
+    descrizione: Sostituzione dell'inverter, una volta a metà vita dell'impianto.
+    fonte: Preventivi
+    stato: da_verificare
+
+  costo_batteria:
+    valore: 650
+    min: 450
+    max: 850
+    unita: EUR/kWh
+    descrizione: Prezzo installato di un accumulo domestico.
+    fonte: Preventivi
+    stato: da_verificare
+
+  vita_batteria:
+    valore: 12
+    min: 10
+    max: 15
+    unita: anni
+    descrizione: Anni dopo i quali la batteria va sostituita.
+    fonte: Garanzie dei produttori
+    stato: da_verificare
+
+  costo_pdc:
+    valore: 11000
+    min: 8000
+    max: 14000
+    unita: EUR
+    descrizione: Pompa di calore aria-acqua installata per una casa.
+    fonte: Preventivi; serve anche il costo di un impianto GPL nuovo per il confronto
+    stato: da_verificare
+
+  # --- Comunità energetica -------------------------------------------------------
+
+  tip_parte_fissa:
+    valore: 80
+    min: null
+    max: null
+    unita: EUR/MWh
+    descrizione: Parte fissa della tariffa premio GSE sull'energia condivisa (impianti fino a 200 kW).
+    fonte: DM MASE 414/2023 e regole operative GSE
+    stato: da_verificare
+
+  tip_massimo:
+    valore: 120
+    min: null
+    max: null
+    unita: EUR/MWh
+    descrizione: Tetto della tariffa premio (parte fissa più parte variabile legata al prezzo di mercato).
+    fonte: DM MASE 414/2023 e regole operative GSE
+    stato: da_verificare
+
+  tip_correzione_zonale:
+    valore: 4
+    min: null
+    max: null
+    unita: EUR/MWh
+    descrizione: Maggiorazione per gli impianti fotovoltaici nelle regioni del Centro.
+    fonte: DM MASE 414/2023
+    stato: da_verificare
+
+  valorizzazione_arera:
+    valore: 8
+    min: 7
+    max: 10
+    unita: EUR/MWh
+    descrizione: Restituzione di parte delle tariffe di rete sull'energia condivisa.
+    fonte: ARERA, Testo integrato autoconsumo diffuso (TIAD)
+    stato: da_verificare
+
+  durata_incentivo_cer:
+    valore: 20
+    min: null
+    max: null
+    unita: anni
+    descrizione: Durata della tariffa premio dall'entrata in esercizio dell'impianto.
+    fonte: DM MASE 414/2023
+    stato: da_verificare
+
+  scadenza_incentivi_cer:
+    valore: 2027-12-31
+    min: null
+    max: null
+    unita: data
+    descrizione: Ultimo giorno per accedere alla tariffa premio, salvo proroghe o esaurimento del contingente nazionale.
+    fonte: DM MASE 414/2023
+    stato: da_verificare
+
+  ripartizione_produttori:
+    valore: 0.50
+    min: null
+    max: null
+    unita: frazione
+    descrizione: Quota dell'incentivo CER che va a chi ha messo l'impianto.
+    fonte: Statuto della CER (proposta da discutere)
+    stato: decide_il_gruppo
+
+  ripartizione_consumatori:
+    valore: 0.30
+    min: null
+    max: null
+    unita: frazione
+    descrizione: Quota dell'incentivo CER divisa fra i membri in proporzione al prelievo nelle ore condivise.
+    fonte: Statuto della CER (proposta da discutere)
+    stato: decide_il_gruppo
+
+  ripartizione_fondo_comune:
+    valore: 0.20
+    min: null
+    max: null
+    unita: frazione
+    descrizione: Quota dell'incentivo CER destinata al fondo comune o alla Pro Loco.
+    fonte: Statuto della CER (proposta da discutere)
+    stato: decide_il_gruppo
+
+  # --- Incentivi fiscali -----------------------------------------------------------
+
+  detrazione_2026_prima_casa:
+    valore: 0.50
+    min: null
+    max: null
+    unita: frazione
+    descrizione: Detrazione IRPEF per lavori sulla prima casa, restituita in 10 rate annuali.
+    fonte: Legge di bilancio 2026
+    stato: da_verificare
+
+  detrazione_2027:
+    valore: null
+    min: 0.30
+    max: 0.50
+    unita: frazione
+    descrizione: Detrazione per i lavori pagati nel 2027.
+    fonte: Legge di bilancio 2027, in discussione
+    stato: da_verificare
+
+  anni_detrazione:
+    valore: 10
+    min: null
+    max: null
+    unita: anni
+    descrizione: Numero di rate annuali in cui torna la detrazione.
+    fonte: Normativa IRPEF sui bonus edilizi
+    stato: da_verificare
+
+  # --- Parametri economici -----------------------------------------------------------
+
+  tasso_sconto:
+    valore: 0.03
+    min: 0.02
+    max: 0.05
+    unita: frazione/anno
+    descrizione: Rendimento della migliore alternativa ai propri soldi, o tasso del prestito.
+    fonte: Scelta del gruppo
+    stato: decide_il_gruppo
+
+  variazione_prezzi_energia:
+    valore: 0.0
+    min: -0.02
+    max: 0.03
+    unita: frazione/anno
+    descrizione: Variazione annua dei prezzi dell'energia; si provano tre scenari.
+    fonte: Scelta del gruppo
+    stato: decide_il_gruppo
+
+  vita_fv:
+    valore: 25
+    min: 20
+    max: 30
+    unita: anni
+    descrizione: Vita utile di un impianto fotovoltaico.
+    fonte: Garanzie dei produttori
+    stato: da_verificare
+
+  vita_pdc:
+    valore: 15
+    min: 12
+    max: 20
+    unita: anni
+    descrizione: Vita utile di una pompa di calore.
+    fonte: Letteratura tecnica
+    stato: da_verificare
