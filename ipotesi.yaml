@@ -11,7 +11,7 @@
 #   unita        unità di misura (EUR = euro; IVA inclusa se non detto altrimenti)
 #   descrizione  cosa rappresenta, in parole semplici
 #   fonte        da dove viene il valore
-#   stato        dalle_bollette | da_verificare | decide_il_gruppo | da_calcolare
+#   stato        dalle_bollette | verificato | da_verificare | decide_il_gruppo | da_calcolare
 #
 # Le voci "da_verificare" vengono da una prima stesura e vanno controllate
 # sulle fonti ufficiali prima di usarle per decidere.
@@ -159,7 +159,66 @@ ipotesi:
     max: 14000
     unita: EUR
     descrizione: Pompa di calore aria-acqua installata per una casa.
-    fonte: Preventivi; serve anche il costo di un impianto GPL nuovo per il confronto
+    fonte: Preventivi
+    stato: da_verificare
+
+  # --- Uscita dal gas e alternativa GPL ------------------------------------------
+  # Le famiglie vogliono togliere il gas; il GPL nuovo resta come scenario di
+  # confronto. I costi di dismissione del vecchio impianto valgono per tutti
+  # gli scenari senza gas.
+
+  costo_nuovo_gpl:
+    valore: null
+    min: null
+    max: null
+    unita: EUR per casa
+    descrizione: "Scenario di confronto: restare col GPL, con serbatoio nuovo o adeguato (quota per casa) ed eventuale caldaia nuova."
+    fonte: Preventivo Beyfin e termotecnico
+    stato: da_verificare
+
+  costo_dismissione_bombolone:
+    valore: null
+    min: null
+    max: null
+    unita: EUR per casa
+    descrizione: Rimozione e bonifica del serbatoio condominiale, quota per casa. Può essere a carico del distributore se il serbatoio è suo.
+    fonte: Chiedere a Beyfin proprietà del serbatoio, procedura e costi
+    stato: da_verificare
+
+  costo_messa_in_sicurezza_gas:
+    valore: null
+    min: 150
+    max: 500
+    unita: EUR per casa
+    descrizione: Distacco e chiusura delle tubazioni del gas in casa, con dichiarazione di conformità.
+    fonte: Preventivo idraulico
+    stato: da_verificare
+
+  costo_smaltimento_caldaia:
+    valore: null
+    min: 100
+    max: 300
+    unita: EUR per casa
+    descrizione: Smontaggio e smaltimento della caldaia a GPL.
+    fonte: Preventivo idraulico
+    stato: da_verificare
+
+  costo_aumento_potenza:
+    valore: null
+    min: 150
+    max: 400
+    unita: EUR per casa
+    descrizione: Contributo una tantum per aumentare il contatore, per esempio da 3 a 6 kW, per pompa di calore e piano a induzione.
+    fonte: Tariffe e-distribuzione e ARERA, più le spese del venditore
+    stato: da_verificare
+
+  costo_piano_induzione:
+    valore: null
+    min: 300
+    max: 1200
+    unita: EUR per casa
+    descrizione: Piano a induzione al posto dei fornelli a gas (pentole compatibili escluse).
+    fonte: Prezzi di mercato
     stato: da_verificare
 
   # --- Comunità energetica -------------------------------------------------------
@@ -217,6 +276,15 @@ ipotesi:
     descrizione: Ultimo giorno per accedere alla tariffa premio, salvo proroghe o esaurimento del contingente nazionale.
     fonte: DM MASE 414/2023
     stato: da_verificare
+
+  cabina_primaria:
+    valore: AC001E00710
+    min: null
+    max: null
+    unita: codice
+    descrizione: Cabina primaria a cui è collegata Seccheto. Membri e impianti della CER devono stare sotto la stessa.
+    fonte: Mappa interattiva delle cabine primarie del GSE, consultata il 2026-10-25
+    stato: verificato
 
   ripartizione_produttori:
     valore: 0.50

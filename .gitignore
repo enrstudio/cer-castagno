@@ -17,3 +17,7 @@ __pycache__/
 # QGIS
 *.qgs~
 *.qgz~
+
+# Progetti QGIS personali: puntano a file fuori dal repository.
+qgis/*.qgz
+qgis/*.qgs

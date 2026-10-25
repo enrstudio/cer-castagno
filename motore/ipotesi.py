@@ -23,7 +23,7 @@ import yaml
 # Il registro sta nella radice del repository, una cartella sopra `motore/`.
 PERCORSO_PREDEFINITO = Path(__file__).resolve().parent.parent / "ipotesi.yaml"
 
-STATI_AMMESSI = {"dalle_bollette", "da_verificare", "decide_il_gruppo", "da_calcolare"}
+STATI_AMMESSI = {"dalle_bollette", "verificato", "da_verificare", "decide_il_gruppo", "da_calcolare"}
 CAMPI_OBBLIGATORI = {"valore", "min", "max", "unita", "descrizione", "fonte", "stato"}
 
 

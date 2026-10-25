@@ -24,8 +24,10 @@ METODO.md        il metodo di calcolo, con formule e fonti
 motore/          il motore di calcolo in Python
   ipotesi.py     lettura e controllo del registro
   finanza.py     flussi di cassa, VAN, TIR, tempo di ritorno
+  produzione.py  produzione fotovoltaica con PVGIS, con cache
 strumenti/       script di servizio
   estrai_bollette.py    dati dalle bollette PDF a tabelle CSV
+  analisi_superfici.py  falde dal DSM LiDAR: azimut, orizzonte, resa con PVGIS
   controllo_privacy.py  blocca i commit con dati personali
 qgis/            schema dei layer e stili per QGIS
 sito/            il sito statico (in arrivo)
@@ -60,6 +62,7 @@ direttamente nel codice. Ogni voce dice da dove viene e quanto è affidabile:
 | Stato | Significato |
 | --- | --- |
 | `dalle_bollette` | ricavato dalle bollette reali delle famiglie |
+| `verificato` | controllato su una fonte ufficiale |
 | `da_verificare` | stima iniziale, va controllata sulla fonte ufficiale |
 | `decide_il_gruppo` | una scelta delle famiglie, non un fatto (es. il tasso di sconto) |
 | `da_calcolare` | lo calcola il motore caso per caso (es. la produzione di ogni tetto) |

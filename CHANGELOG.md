@@ -13,3 +13,7 @@ cita la versione del motore che lo ha prodotto.
 - `strumenti/estrai_bollette.py`: estrazione dei dati dalle fatture Enel e Beyfin in PDF.
 - `strumenti/controllo_privacy.py`: blocca i commit che contengono dati personali.
 - Test automatici su GitHub Actions.
+- `motore/produzione.py`: produzione fotovoltaica con l'API PVGIS, con cache su disco.
+- `strumenti/analisi_superfici.py`: azimut delle falde dal disegno, orizzonte dal DSM LiDAR e dal DTM, resa con PVGIS.
+- Nel registro: cabina primaria di Seccheto e nuovo stato `verificato`.
+- Nel registro: costi di uscita dal gas (dismissione del bombolone, messa in sicurezza, smaltimento caldaia, aumento di potenza, piano a induzione) e costo dello scenario di confronto "GPL nuovo".
