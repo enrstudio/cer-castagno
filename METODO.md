@@ -59,13 +59,53 @@ numeri del foglio di calcolo da cui è partito il progetto: VAN −1.557,45 €
 e B/C 0,9113 per un fotovoltaico da 16.000 € con 1.024,50 € l'anno di
 benefici, 100 € di costi annui, al 4% per 25 anni.
 
-## 3. Produzione fotovoltaica (`motore/produzione.py`) — da scrivere
+## 3. Produzione fotovoltaica (`motore/produzione.py`) — scritto e testato
 
-Per ogni superficie: chiamata all'API PVGIS `seriescalc` (JRC, banca dati
-SARAH3) con potenza, perdite, inclinazione, azimut (convenzione PVGIS:
-0 = sud, −90 = est, +90 = ovest) e profilo d'orizzonte calcolato dal DSM
-LiDAR. Le serie orarie di più anni si mediano in un anno tipo da 8.760 ore.
-Le risposte sono salvate in `cache/`.
+Per ogni falda si chiama l'API PVGIS `PVcalc` (JRC, banca dati SARAH3) con
+1 kWp, perdite, inclinazione, azimut (convenzione PVGIS: 0 = sud, −90 = est,
++90 = ovest) e il profilo d'orizzonte calcolato dal DSM LiDAR
+(`strumenti/analisi_superfici.py`). Il risultato è la produzione media annua
+e mensile di 1 kWp; quella della falda è questa per i kWp che ci stanno
+(sezione 3 bis). Le risposte sono salvate in `cache/`. Per il bilancio ora
+per ora servirà `seriescalc` (issue #11).
+
+## 3 bis. Quanti moduli stanno su una falda (`motore/pannelli.py`) — scritto e testato
+
+Le regole da cui vengono i parametri sono in `docs/normativa.md`.
+
+1. **Modulo di riferimento**: misure e potenza dalla scheda tecnica di un
+   modulo in commercio (`modulo_*` nel registro), da sostituire con quello
+   del preventivo.
+2. **Il piano della falda.** Coordinate sul tetto: x lungo il colmo, y lungo
+   la pendenza, con y = (distanza in pianta lungo la discesa) / cos(inclinazione).
+3. **Fasce libere ai bordi**, misurate sul tetto, diverse per lato:
+   - `fascia_bordo_copertura_m` sui bordi veri del tetto (gronda, colmo,
+     lati liberi);
+   - `fascia_confine_m` sui lati in comune con la falda di un'altra casa.
+     Un lato è "in comune" se tre suoi punti (a ¼, ½, ¾) stanno entro 0,5 m
+     dal bordo di un'altra falda del layer: è una tolleranza di disegno.
+
+   La falda ristretta è l'intersezione dei semipiani interni, ogni lato
+   spostato della sua fascia.
+4. **Ostacoli** (comignoli, lucernari, antenne, disegnati in pianta): resta
+   libero il rettangolo, sul tetto, che contiene l'ostacolo allargato di
+   `distanza_ostacoli_m` in proiezione orizzontale (lungo la pendenza, sul
+   tetto, d / cos(inclinazione)). Il rettangolo è più prudente del cerchio
+   della norma.
+5. **File di moduli** parallele al colmo, con `spazio_tra_moduli_m` fra un
+   modulo e l'altro e fra una fila e l'altra. In una fila che va da y₀ a
+   y₀ + h, la falda ristretta, convessa, è larga almeno quanto lo è ai due
+   bordi della fila: [max(sinistra₀, sinistra₁), min(destra₀, destra₁)].
+   Tolte le parti vicine agli ostacoli, in ogni tratto libero stanno
+   ⌊(L + s) / (l + s)⌋ moduli, centrati. La prima fila si prova a passi di
+   5 cm lungo la pendenza; si tiene la posizione con più moduli.
+6. **Orientamento**: tutti i moduli in verticale (lato lungo lungo la
+   pendenza) o tutti in orizzontale; si tiene il migliore.
+
+Si riporta anche il **massimo geometrico**, senza fasce né distanze, come
+limite superiore. **Limiti**: falda convessa (se no il calcolo si ferma);
+niente file miste; pochi decimi di grado di azimut possono spostare il conto
+di un modulo.
 
 ## 4. Consumi elettrici orari (`motore/consumi.py`) — da scrivere
 

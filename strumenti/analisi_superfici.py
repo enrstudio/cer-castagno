@@ -13,6 +13,14 @@ Per ogni poligono disegnato in QGIS (una falda, in pianta) ricava:
   affidabile: si riporta con il suo scarto, ma non si usa;
 - area reale inclinata, dall'area in pianta divisa per il coseno
   dell'inclinazione;
+- quanti moduli ci stanno e dove, con il metodo di `motore/pannelli.py`
+  (modulo di riferimento, fascia ai bordi e distanza dagli ostacoli dal
+  registro delle ipotesi). Un lato che corre lungo il lato di un'altra
+  falda del layer (entro TOLLERANZA_CONFINE_M) è un confine fra due case
+  sotto lo stesso tetto e prende la fascia di confine; gli altri lati sono
+  bordi del tetto e prendono la fascia di bordo. Si calcola anche il massimo geometrico, senza
+  nessuna fascia, come limite superiore. I rettangoli dei moduli si
+  scrivono nel GeoPackage `moduli.gpkg`, da aprire in QGIS;
 - profilo d'orizzonte: guardando dal centro della falda, per ogni
   direzione l'angolo più alto sotto cui si vede un ostacolo. Vicino si usa
   il DSM (vede case e alberi), lontano un DTM più grezzo (vede le montagne).
@@ -24,7 +32,10 @@ orizzonte di PVGIS, nessun orizzonte) per far vedere quanto pesano le ombre.
 Richiede GDAL con i binding Python (pacchetto python3-gdal) e numpy.
 
 Uso:
-    python strumenti/analisi_superfici.py falde.shp DSM.tif DTM.tif dati/superfici
+    python strumenti/analisi_superfici.py falde.shp DSM.tif DTM.tif dati/superfici [--ostacoli ostacoli.shp]
+
+Il layer degli ostacoli (facoltativo) ha punti o poligoni in pianta, nello
+stesso sistema di riferimento delle falde: comignoli, lucernari, antenne.
 """
 
 from __future__ import annotations
@@ -42,15 +53,17 @@ from osgeo import gdal, ogr, osr
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from motore.ipotesi import carica_ipotesi  # noqa: E402
+from motore.pannelli import Modulo, disponi  # noqa: E402
 from motore.produzione import azimut_da_bussola, stima_annua  # noqa: E402
 
 gdal.UseExceptions()
 
+# Due lati disegnati a mano sullo stesso confine non coincidono mai al centimetro:
+# entro mezzo metro si considerano lo stesso confine. È una tolleranza di disegno, non un'ipotesi fisica.
+TOLLERANZA_CONFINE_M = 0.5
 PASSO_ORIZZONTE_DEG = 7.5  # 48 direzioni: il passo usato anche da PVGIS
 RAGGIO_TERRA_M = 6_371_000
 RIFRAZIONE = 0.13  # la rifrazione dell'aria "solleva" un po' gli oggetti lontani
-DENSITA_KWP_M2 = 0.21  # pannelli da 450 W su circa 2,1 m²
-QUOTA_UTILE = 0.75  # parte della falda davvero coperta: bordi, comignoli, sicurezza
 
 
 class Raster:
@@ -94,7 +107,13 @@ class Falda:
     quota_colmo_m: float  # da dove si guarda l'orizzonte
     lat: float
     lon: float
+    lati_confine: int  # lati in comune con la falda di un'altra casa
+    n_moduli: int  # con fascia ai bordi e distanze dagli ostacoli del registro
+    orientamento_moduli: str
     kwp_possibili: float
+    area_moduli_m2: float
+    n_moduli_massimo: int  # massimo geometrico: nessuna fascia, nessuna distanza
+    kwp_massimo: float
     # Controllo dal DSM: utile solo se lo scarto è piccolo (sotto 0,3 m circa).
     inclinazione_dsm_deg: float
     azimut_dsm_deg: float
@@ -214,12 +233,69 @@ def orizzonte(x: float, y: float, z: float, vicino: Raster, lontano: Raster,
     return profilo
 
 
+def _vertici(geom: ogr.Geometry) -> list[tuple[float, float]]:
+    """I vertici di un punto o del bordo esterno di un poligono, in pianta."""
+    nome = geom.GetGeometryName()
+    if nome == "POINT":
+        return [(geom.GetX(), geom.GetY())]
+    if nome == "MULTIPOLYGON":
+        if geom.GetGeometryCount() != 1:
+            raise ValueError("Una falda deve essere un poligono solo")
+        geom = geom.GetGeometryRef(0)
+    return [(x, y) for x, y, *_ in geom.GetGeometryRef(0).GetPoints()]
+
+
+def lati_di_confine(pianta: list[tuple[float, float]], altre: list[ogr.Geometry]) -> list[bool]:
+    """Per ogni lato della falda (dal vertice i al vertice i+1): corre lungo un'altra falda?
+
+    Si guardano tre punti del lato (a un quarto, a metà, a tre quarti): se
+    tutti stanno entro TOLLERANZA_CONFINE_M dal bordo di un'altra falda, il
+    lato è un confine.
+    """
+    punti = pianta[:-1] if pianta[0] == pianta[-1] else pianta
+    bordi = [g.GetBoundary() for g in altre]
+    risultato = []
+    for i, a in enumerate(punti):
+        b = punti[(i + 1) % len(punti)]
+        prove = []
+        for t in (0.25, 0.5, 0.75):
+            p = ogr.Geometry(ogr.wkbPoint)
+            p.AddPoint_2D(a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1]))
+            prove.append(p)
+        risultato.append(any(all(bordo.Distance(p) <= TOLLERANZA_CONFINE_M for p in prove) for bordo in bordi))
+    return risultato
+
+
+def scrivi_moduli(percorso: Path, srs: osr.SpatialReference, moduli: list) -> None:
+    """I rettangoli dei moduli come layer di poligoni, per vederli in QGIS e sulla mappa."""
+    driver = ogr.GetDriverByName("GPKG")
+    if percorso.exists():
+        driver.DeleteDataSource(str(percorso))
+    ds = driver.CreateDataSource(str(percorso))
+    lyr = ds.CreateLayer("moduli", srs, ogr.wkbPolygon)
+    for nome, tipo in (("falda_id", ogr.OFTString), ("orientamento", ogr.OFTString)):
+        lyr.CreateField(ogr.FieldDefn(nome, tipo))
+    for fid, orientamento, rettangolo in moduli:
+        anello = ogr.Geometry(ogr.wkbLinearRing)
+        for x, y in (*rettangolo, rettangolo[0]):
+            anello.AddPoint_2D(x, y)
+        poligono = ogr.Geometry(ogr.wkbPolygon)
+        poligono.AddGeometry(anello)
+        f = ogr.Feature(lyr.GetLayerDefn())
+        f.SetField("falda_id", fid)
+        f.SetField("orientamento", orientamento)
+        f.SetGeometry(poligono)
+        lyr.CreateFeature(f)
+    ds = None  # chiude e scrive il file
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Misura le falde dal DSM e stima la produzione con PVGIS.")
     parser.add_argument("falde", help="layer vettoriale delle falde (poligoni in pianta, con campo id)")
     parser.add_argument("dsm", help="DSM LiDAR (vede case e alberi)")
     parser.add_argument("dtm", help="DTM a copertura ampia, per le montagne lontane")
     parser.add_argument("uscita", type=Path, help="cartella dei risultati, dentro dati/")
+    parser.add_argument("--ostacoli", help="layer di punti o poligoni: comignoli, lucernari, antenne")
     parser.add_argument("--inclinazione", type=float, default=20.0,
                         help="inclinazione provvisoria in gradi, per le falde senza il campo inclinaz (predefinita 20)")
     args = parser.parse_args()
@@ -227,6 +303,9 @@ def main() -> None:
 
     reg = carica_ipotesi()
     perdite = reg.valore("perdite_sistema_fv")
+    modulo = Modulo(reg.valore("modulo_lunghezza_m"), reg.valore("modulo_larghezza_m"), reg.valore("modulo_potenza_wp"))
+    spazio, fascia, fascia_confine, distanza = (reg.valore(k) for k in (
+        "spazio_tra_moduli_m", "fascia_bordo_copertura_m", "fascia_confine_m", "distanza_ostacoli_m"))
     dsm, dtm = Raster(args.dsm), Raster(args.dtm)
 
     # La sorgente va tenuta in una variabile: se Python la libera, il layer
@@ -240,7 +319,17 @@ def main() -> None:
     srs.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
     in_gradi = osr.CoordinateTransformation(srs, a_wgs84)
 
-    righe, orizzonti = [], {}
+    ostacoli = []
+    if args.ostacoli:
+        sorgente_ostacoli = ogr.Open(args.ostacoli)
+        for o in sorgente_ostacoli.GetLayer():
+            g = o.GetGeometryRef().Clone()
+            ostacoli.append((g, _vertici(g)))
+
+    tutte = {str(e.GetField("id")): e.GetGeometryRef().Clone() for e in layer}
+    layer.ResetReading()
+
+    righe, orizzonti, moduli = [], {}, []
     for elemento in layer:
         geom = elemento.GetGeometryRef().Clone()
         fid = str(elemento.GetField("id"))
@@ -259,8 +348,17 @@ def main() -> None:
         centro = geom.Centroid()
         lon, lat, _ = in_gradi.TransformPoint(centro.GetX(), centro.GetY())
         area_reale = geom.GetArea() / math.cos(math.radians(incl))
+        # Contano solo gli ostacoli abbastanza vicini da togliere spazio ai moduli.
+        vicini = [v for g, v in ostacoli if g.Distance(geom) <= distanza]
+        pianta = _vertici(geom)
+        confini = lati_di_confine(pianta, [g for k, g in tutte.items() if k != fid])
+        fasce = [fascia_confine if c else fascia for c in confini]
+        scelta = disponi(pianta, azim, incl, modulo, spazio, fasce, vicini, distanza)[0]
+        massimo = disponi(pianta, azim, incl, modulo, spazio, 0.0)[0]
+        moduli += [(fid, scelta.orientamento, r) for r in scelta.rettangoli]
         falda = Falda(fid, round(geom.GetArea(), 1), round(area_reale, 1), incl, fonte_incl, round(azim, 1),
-                      round(colmo, 1), lat, lon, round(area_reale * QUOTA_UTILE * DENSITA_KWP_M2, 1),
+                      round(colmo, 1), lat, lon, sum(confini), scelta.n_moduli, scelta.orientamento, round(scelta.kwp, 2),
+                      round(scelta.area_moduli_m2, 1), massimo.n_moduli, round(massimo.kwp, 2),
                       round(incl_dsm, 1), round(azim_dsm, 1), round(scarto, 2), n)
         # Si guarda da mezzo metro sotto il colmo: circa il centro della falda.
         profilo = orizzonte(centro.GetX(), centro.GetY(), colmo - 0.5, dsm, dtm)
@@ -274,6 +372,7 @@ def main() -> None:
                       "resa_lidar_kwh_kwp": lidar.kwh_anno, "resa_pvgis_kwh_kwp": pvgis.kwh_anno,
                       "resa_senza_ombre_kwh_kwp": libero.kwh_anno,
                       "kwh_anno_stimati": round(lidar.kwh_anno * falda.kwp_possibili),
+                      "kwh_anno_massimo": round(lidar.kwh_anno * falda.kwp_massimo),
                       "kwh_mese_lidar_1kwp": json.dumps([round(v, 1) for v in lidar.kwh_mese])})
 
     with open(args.uscita / "falde.csv", "w", newline="", encoding="utf-8") as f:
@@ -281,9 +380,11 @@ def main() -> None:
         w.writeheader()
         w.writerows(righe)
     (args.uscita / "orizzonti.json").write_text(json.dumps(orizzonti, indent=1), encoding="utf-8")
+    scrivi_moduli(args.uscita / "moduli.gpkg", srs, moduli)
     for r in righe:
         print(f"falda {r['id']}: {r['inclinazione_deg']:.0f}° ({r['fonte_inclinazione']}) verso {r['azimut_pvgis_deg']:+.0f}° (0 = sud), "
-              f"{r['area_reale_m2']:.1f} m², ~{r['kwp_possibili']} kWp, "
+              f"{r['area_reale_m2']:.1f} m², {r['lati_confine']} lati di confine, {r['n_moduli']} moduli {r['orientamento_moduli']} = {r['kwp_possibili']} kWp "
+              f"(massimo geometrico {r['n_moduli_massimo']}), "
               f"resa {r['resa_lidar_kwh_kwp']:.0f} kWh/kWp con ombre LiDAR "
               f"({r['resa_senza_ombre_kwh_kwp']:.0f} senza ombre)")
 

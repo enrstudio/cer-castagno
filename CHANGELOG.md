@@ -6,6 +6,10 @@ cita la versione del motore che lo ha prodotto.
 ## [Non ancora rilasciato]
 
 ### Aggiunto
+- `motore/pannelli.py`: disposizione dei moduli su una falda (piano del tetto, fasce per lato, ostacoli, file parallele al colmo); sostituisce le due costanti non dichiarate di `analisi_superfici.py` (0,21 kWp/m² e 75% di falda utile). Issue #5.
+- `analisi_superfici.py`: riconosce i lati in comune fra falde di case diverse, scrive i moduli in `moduli.gpkg`, riporta anche il massimo geometrico.
+- `docs/normativa.md`: rassegna delle norme per i pannelli sul tetto e per la CER.
+- Registro 0.4.0: modulo di riferimento (JA Solar JAM54D40), spazio fra i moduli, fasce ai bordi e al confine, distanza dagli ostacoli.
 - Struttura del repository, licenza AGPL-3.0, README e METODO.
 - `ipotesi.yaml`: prima stesura del registro delle ipotesi.
 - `motore/ipotesi.py`: lettura e controllo del registro.

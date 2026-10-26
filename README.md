@@ -21,15 +21,17 @@ pubblica un sito statico con concetti, mappa e scenari.
 ```text
 ipotesi.yaml     il registro delle ipotesi: ogni parametro con valore, forchetta, fonte e stato
 METODO.md        il metodo di calcolo, con formule e fonti
+docs/            approfondimenti: normativa.md, le norme per pannelli e CER
 motore/          il motore di calcolo in Python
   ipotesi.py     lettura e controllo del registro
   finanza.py     flussi di cassa, VAN, TIR, tempo di ritorno
   produzione.py  produzione fotovoltaica con PVGIS, con cache
+  pannelli.py    quanti moduli stanno su una falda, e dove
   meteo.py       temperature orarie misurate (Open-Meteo), con cache
   calore.py      calore dalle bollette GPL, pompa di calore, stufe a pellet e legna
 strumenti/       script di servizio
   estrai_bollette.py    dati dalle bollette PDF a tabelle CSV
-  analisi_superfici.py  falde dal DSM LiDAR: azimut, orizzonte, resa con PVGIS
+  analisi_superfici.py  falde dal DSM LiDAR: azimut, orizzonte, moduli, resa con PVGIS
   scenari_calore.py     scheda di ogni casa: tetto, consumi, riscaldamento senza gas
   controllo_privacy.py  blocca i commit con dati personali
 qgis/            schema dei layer e stili per QGIS

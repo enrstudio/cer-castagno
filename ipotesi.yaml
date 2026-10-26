@@ -16,7 +16,7 @@
 # Le voci "da_verificare" vengono da una prima stesura e vanno controllate
 # sulle fonti ufficiali prima di usarle per decidere.
 
-versione: 0.3.0
+versione: 0.4.0
 aggiornato: 2026-10-26
 
 ipotesi:
@@ -291,6 +291,69 @@ ipotesi:
     descrizione: Energia prodotta in un anno da 1 kWp. Valore di riferimento; per ogni superficie si calcola con PVGIS.
     fonte: PVGIS con orizzonte dal DSM LiDAR
     stato: da_calcolare
+
+  modulo_lunghezza_m:
+    valore: 1.762
+    min: null
+    max: null
+    unita: m
+    descrizione: Lato lungo del modulo di riferimento. Si sostituisce con il modulo del preventivo.
+    fonte: "Scheda tecnica JA Solar JAM54D40 435-460/LB, 2024-09 (1762 ± 2 mm); copia in normativa/schede_tecniche/"
+    stato: verificato
+
+  modulo_larghezza_m:
+    valore: 1.134
+    min: null
+    max: null
+    unita: m
+    descrizione: Lato corto del modulo di riferimento.
+    fonte: "Scheda tecnica JA Solar JAM54D40 435-460/LB, 2024-09 (1134 ± 2 mm)"
+    stato: verificato
+
+  modulo_potenza_wp:
+    valore: 450
+    min: 435
+    max: 460
+    unita: Wp
+    descrizione: Potenza di picco del modulo di riferimento (classe centrale; la forchetta sono le classi in vendita).
+    fonte: "Scheda tecnica JA Solar JAM54D40 435-460/LB, 2024-09, condizioni STC"
+    stato: verificato
+
+  spazio_tra_moduli_m:
+    valore: 0.02
+    min: 0.0
+    max: 0.03
+    unita: m
+    descrizione: Spazio fra due moduli vicini, occupato dal morsetto centrale del sistema di fissaggio.
+    fonte: Ordine di grandezza dei morsetti in commercio; da sostituire con il manuale del sistema di fissaggio del preventivo
+    stato: da_verificare
+
+  fascia_bordo_copertura_m:
+    valore: 1.0
+    min: 0.0
+    max: 1.0
+    unita: m
+    descrizione: Fascia lasciata libera lungo i bordi della falda, misurata sul tetto. Il minimo (0) è il massimo geometrico, senza nessuna fascia.
+    fonte: "Linea guida VVF di prevenzione incendi per gli impianti FV, nota DCPREV n. 14030 del 01/09/2025, par. 3.3.5.1 c. 2: fascia di almeno 1 m dal limite della copertura. Per le abitazioni (attività non soggette) è un riferimento, non un obbligo (par. 1.2 c. 4); va confrontata col manuale di montaggio (zone di bordo per il vento, NTC 2018) e con gli spazi per l'anticaduta (DPGR Toscana 75/R/2013)"
+    stato: da_verificare
+
+  fascia_confine_m:
+    valore: 0.0
+    min: 0.0
+    max: 1.0
+    unita: m
+    descrizione: Fascia libera lungo il lato in comune con la falda di un'altra casa, quando il tetto è uno solo e diviso fra più proprietà. Zero vuol dire moduli fino al confine.
+    fonte: "Accordo fra i vicini. Come riferimento, la linea guida VVF (nota DCPREV n. 14030 del 01/09/2025, par. 3.3.5.1 c. 5) chiede 1 m dalla proiezione di eventuali muri tagliafuoco, nelle attività soggette"
+    stato: decide_il_gruppo
+
+  distanza_ostacoli_m:
+    valore: 1.0
+    min: 0.0
+    max: 1.0
+    unita: m
+    descrizione: Distanza libera intorno a comignoli, lucernari, aperture e impianti sul tetto, in proiezione orizzontale.
+    fonte: "Linea guida VVF, nota DCPREV n. 14030 del 01/09/2025, par. 3.3.5.1 c. 3 e 4 (riferimento per le abitazioni, non obbligo)"
+    stato: da_verificare
 
   perdite_sistema_fv:
     valore: 0.14
