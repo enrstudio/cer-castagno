@@ -24,7 +24,7 @@ I dati delle case stanno in un file YAML nella cartella privata `dati/`:
         persone: 5
         riscaldamento: gas                # gas | legna
         acqua_calda: gas                  # gas | legna | elettrico
-        cucina: gas                       # gas | induzione
+        cucina: gas                       # gas | induzione | legna, anche insieme: gas+legna
         potenza_contatore_kw: 3
         fatture_gpl: bollette/gpl_fatture.csv   # oppure gpl_m3_anno: 300
         luce_mensile: bollette/enel_mensile.csv # facoltativo
@@ -131,8 +131,10 @@ def analizza_casa(nome: str, casa: dict, falda: dict, cartella: Path, reg, tempe
         mancano.append("consumi di luce (bollette o kWh all'anno)")
 
     # 3. Il calore. La quota fissa conta solo gli usi che oggi fa il gas.
-    acs_gas, cucina_gas, risc_gas = (casa["acqua_calda"] == "gas", casa["cucina"] == "gas",
-                                     casa["riscaldamento"] == "gas")
+    # Un uso può essere coperto da più cose insieme, scritte con "+": "gas+legna" vuol dire
+    # fornelli a gas e cucina economica. Il gas si toglie, il resto resta com'è.
+    usa_gas = lambda uso: "gas" in casa[uso].split("+")  # noqa: E731
+    acs_gas, cucina_gas, risc_gas = usa_gas("acqua_calda"), usa_gas("cucina"), usa_gas("riscaldamento")
     base = quota_fissa_m3_giorno(casa["persone"], acs_gas, cucina_gas,
                                  v("acs_kwh_persona_giorno"), v("gpl_cucina_m3_giorno"), pci, rend)
     cal: Calibrazione | None = None
