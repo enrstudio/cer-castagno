@@ -1,0 +1,68 @@
+/* Stile del sito di Seccheto.
+   Colonna leggibile, font di sistema (nessun font esterno), tema chiaro e scuro.
+   Gli stessi colori del questionario: verde bosco, castagno, il giallo del sole sui tetti. */
+
+:root {
+  --sfondo: #eef1ec;
+  --carta: #ffffff;
+  --inchiostro: #1d2a23;
+  --tenue: #56645b;
+  --bosco: #2f5d46;
+  --castagno: #7a4a2a;
+  --sole: #d1930f;
+  --linea: #cfd8d0;
+  --testo: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --titoli: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sfondo: #171a15;
+    --carta: #1f231c;
+    --inchiostro: #e8e6df;
+    --tenue: #a9ad9f;
+    --bosco: #8cc3a3;
+    --castagno: #d9a47c;
+    --sole: #e5a92a;
+    --linea: #353a30;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0 auto;
+  max-width: 60rem;
+  padding: 2.5rem max(1rem, env(safe-area-inset-right)) 3rem max(1rem, env(safe-area-inset-left));
+  background: var(--sfondo);
+  color: var(--inchiostro);
+  font: 1.0625rem/1.55 var(--testo);
+}
+
+h1, h2 { font-family: var(--titoli); font-weight: 600; line-height: 1.15; text-wrap: balance; }
+h1 { font-size: clamp(2rem, 6vw, 3rem); margin: 0.2rem 0 0.8rem; color: var(--bosco); }
+h2 { font-size: 1.3rem; margin: 0 0 0.5rem; }
+a { color: var(--castagno); }
+a:focus-visible { outline: 3px solid var(--sole); outline-offset: 2px; }
+
+.occhiello { margin: 0; font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--castagno); }
+.sottotitolo { margin: 0; max-width: 40rem; color: var(--tenue); font-size: 1.15rem; }
+.testata { margin-bottom: 2.5rem; border-bottom: 3px solid var(--sole); padding-bottom: 1.5rem; }
+
+.sezioni {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+.sezioni article {
+  background: var(--carta);
+  border: 1px solid var(--linea);
+  border-radius: 6px;
+  padding: 1.1rem 1.2rem;
+}
+.sezioni p { margin: 0 0 0.6rem; }
+.stato { font-size: 0.85rem; color: var(--tenue); }
+
+.metodo { max-width: 40rem; }
+footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--linea); font-size: 0.85rem; color: var(--tenue); }

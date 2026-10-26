@@ -33,9 +33,10 @@ strumenti/       script di servizio
   estrai_bollette.py    dati dalle bollette PDF a tabelle CSV
   analisi_superfici.py  falde dal DSM LiDAR: azimut, orizzonte, moduli, resa con PVGIS
   scenari_calore.py     scheda di ogni casa: tetto, consumi, riscaldamento senza gas
+  pubblica_sito.py      prepara il sito in build/ e lo pubblica su Cloudflare Pages
   controllo_privacy.py  blocca i commit con dati personali
 qgis/            schema dei layer e stili per QGIS
-sito/            il sito statico (in arrivo)
+sito/            il sito statico, pubblicato su Cloudflare Pages
 test/            casi noti che il motore deve ritrovare
 dati/            PRIVATO, escluso da git: GeoPackage, bollette, CSV estratti
 ```

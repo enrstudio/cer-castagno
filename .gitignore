@@ -21,3 +21,6 @@ __pycache__/
 # Progetti QGIS personali: puntano a file fuori dal repository.
 qgis/*.qgz
 qgis/*.qgs
+
+# Sito preparato per la pubblicazione: si rigenera da sito/ e dal motore.
+build/
