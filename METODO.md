@@ -98,6 +98,13 @@ m³_i = b × n_i + k × GG_i(T_b),     GG_i = Σ_giorni max(0, T_b − T_media,g
   della forchetta lo script lo segnala: il modello forse non descrive bene
   la casa (una stufa che aiuta, una quota fissa sbagliata).
 
+**Senza bollette.** Per una casa di cui si conosce solo il GPL di un anno
+tipico (dal questionario) si toglie la quota fissa e si divide il resto per
+i gradi giorno medi del 2023–2025, alla temperatura base del registro. Non
+c'è uno scarto da riportare: la stima vale quanto il numero dichiarato.
+Una casa che si scalda a legna tiene la sua stufa: del gas si conta solo
+quello che fa oggi (per esempio i fornelli).
+
 **Calore ora per ora.** Il calore utile del giorno è `k × GG_giorno × PCI ×
 η_caldaia` e si divide fra le ore in proporzione a `max(0, T_interna −
 T_ora)`. L'acqua calda è `persone × ACS_persona`, uguale in ogni ora.

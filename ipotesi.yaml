@@ -16,8 +16,8 @@
 # Le voci "da_verificare" vengono da una prima stesura e vanno controllate
 # sulle fonti ufficiali prima di usarle per decidere.
 
-versione: 0.2.0
-aggiornato: 2026-10-25
+versione: 0.3.0
+aggiornato: 2026-10-26
 
 ipotesi:
 
@@ -89,12 +89,12 @@ ipotesi:
     stato: da_calcolare
 
   acs_kwh_persona_giorno:
-    valore: 1.6
-    min: 1.0
-    max: 2.4
+    valore: 0.8
+    min: 0.5
+    max: 1.6
     unita: kWh/persona/giorno
-    descrizione: Calore per l'acqua calda di una persona in un giorno (circa 40 litri scaldati da 10 a 40 °C, più le perdite).
-    fonte: Ordine di grandezza da UNI/TS 11300-2; da confrontare con le bollette estive
+    descrizione: Calore per l'acqua calda di una persona in un giorno (circa 25 litri scaldati da 15 a 40 °C, più le perdite).
+    fonte: "UNI/TS 11300-2: circa 4 kWh/giorno per un alloggio di 100 m². Con 1,6 per persona le letture GPL della casa al centro (5 persone) non tornano: scarto quasi doppio e temperatura base di 10 °C"
     stato: da_verificare
 
   gpl_cucina_m3_giorno:
@@ -107,11 +107,11 @@ ipotesi:
     stato: da_verificare
 
   temperatura_base_riscaldamento:
-    valore: 16
-    min: 12
+    valore: 15
+    min: 10
     max: 20
     unita: °C
-    descrizione: Temperatura media esterna del giorno sopra la quale il riscaldamento resta spento. Il motore cerca il valore che spiega meglio le letture, dentro la forchetta.
+    descrizione: Temperatura media esterna del giorno sopra la quale il riscaldamento resta spento. Con le letture del contatore il motore cerca il valore che le spiega meglio, dentro la forchetta; senza letture usa il valore di base.
     fonte: Calibrazione sulle letture effettive del contatore GPL
     stato: da_calcolare
 

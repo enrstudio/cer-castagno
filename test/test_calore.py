@@ -6,7 +6,7 @@ from datetime import date, datetime, timedelta
 import pytest
 
 from motore.calore import (
-    Intervallo, OraDiCalore, ParametriPdc, Stufa, calibra, cop_aria_acqua, costo_potenza_in_piu,
+    Intervallo, OraDiCalore, ParametriPdc, Stufa, calibra, calibra_da_consumo_annuo, cop_aria_acqua, costo_potenza_in_piu,
     domanda_oraria, elettricita_induzione_kwh_anno, gradi_giorno, mandata_termosifoni,
     medie_giornaliere, quota_fissa_m3_giorno, simula,
 )
@@ -48,6 +48,16 @@ def test_calibra_ritrova_il_modello_che_ha_generato_le_letture():
     assert cal.t_base == pytest.approx(15.0)
     assert cal.m3_per_grado_giorno == pytest.approx(0.25)
     assert cal.scarto_m3 == pytest.approx(0.0, abs=1e-9)
+
+
+def test_calibra_da_consumo_annuo():
+    medie = medie_giornaliere(_clima_finto(date(2023, 1, 1), 2 * 365 + 1))
+    gg = [gradi_giorno(medie, date(a, 1, 1), date(a + 1, 1, 1), 15.0) for a in (2023, 2024)]
+    # 300 m³ all'anno, di cui 0,1 al giorno di quota fissa: il resto diviso i gradi giorno medi.
+    cal = calibra_da_consumo_annuo(300, medie, (2023, 2024), 0.1, 15.0)
+    assert cal.m3_per_grado_giorno == pytest.approx((300 - 36.5) / (sum(gg) / 2))
+    assert cal.m3_previsti(medie, date(2023, 1, 1), date(2024, 1, 1)) == pytest.approx(
+        36.5 + cal.m3_per_grado_giorno * gg[0])
 
 
 def test_quota_fissa():

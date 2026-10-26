@@ -144,6 +144,21 @@ def calibra(
     return min(candidati, key=lambda c: c.scarto_m3)
 
 
+def calibra_da_consumo_annuo(
+    m3_anno: float, medie: dict[date, float], anni: Sequence[int], base_m3_giorno: float, t_base: float,
+) -> Calibrazione:
+    """Taratura di ripiego quando di una casa si sa solo il GPL di un anno tipico.
+
+    Succede con le famiglie che rispondono al questionario senza le
+    bollette. Si toglie la quota fissa e si divide il resto per i gradi
+    giorno medi degli `anni` indicati: non c'è modo di stimare la
+    temperatura base, che resta quella del registro, né lo scarto.
+    """
+    gg_medi = sum(gradi_giorno(medie, date(a, 1, 1), date(a + 1, 1, 1), t_base) for a in anni) / len(anni)
+    k = max(0.0, (m3_anno - base_m3_giorno * 365) / gg_medi)
+    return Calibrazione(base_m3_giorno, k, t_base, float("nan"), float("nan"), ())
+
+
 def quota_fissa_m3_giorno(
     persone: int, gas_per_acqua_calda: bool, gas_per_cucina: bool,
     acs_kwh_persona_giorno: float, cucina_m3_giorno: float, pci_gpl: float, rendimento_caldaia: float,

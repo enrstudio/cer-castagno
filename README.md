@@ -30,7 +30,7 @@ motore/          il motore di calcolo in Python
 strumenti/       script di servizio
   estrai_bollette.py    dati dalle bollette PDF a tabelle CSV
   analisi_superfici.py  falde dal DSM LiDAR: azimut, orizzonte, resa con PVGIS
-  scenari_calore.py     scenari di riscaldamento senza gas per una casa
+  scenari_calore.py     scheda di ogni casa: tetto, consumi, riscaldamento senza gas
   controllo_privacy.py  blocca i commit con dati personali
 qgis/            schema dei layer e stili per QGIS
 sito/            il sito statico (in arrivo)
